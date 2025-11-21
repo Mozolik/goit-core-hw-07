@@ -13,14 +13,11 @@ class Birthday(Field):
         try:
             if isinstance(value, str):
                 datetime.strptime(value, "%d.%m.%Y")
-                normalized = value
-            elif isinstance(value, date):
-                normalized = value.strftime("%d.%m.%Y")
             else:
                 raise ValueError
-            super().__init__(normalized)
+            super().__init__(value)
         except ValueError:
-            raise ValueError("Invalid date format. Use DD.MM.YYYY")
+            raise ValueError("Недійсний формат дати, використання DD.MM.YYYY")
 
 class Name(Field):
     # реалізація класу
@@ -84,38 +81,32 @@ class AddressBook(UserDict):
         self.data.pop(name)
 
     def get_upcoming_birthdays(self):
-        today = date.today()
+        today = datetime.today().date()
         end_date = today + timedelta(days=7)
         result = []
-        for record in self.data.values():
-            if not record.birthday:
-                continue
-            try:
-                bday = datetime.strptime(record.birthday.value, "%d.%m.%Y").date()
-            except ValueError:
-                continue
-            year = today.year
-            try:
-                next_bday = date(year, bday.month, bday.day)
-            except ValueError:
-                next_bday = date(year, 2, 28)
-            if next_bday < today:
-                year += 1
-                try:
-                    next_bday = date(year, bday.month, bday.day)
-                except ValueError:
-                    next_bday = date(year, 2, 28)
-            if next_bday.weekday() == 5:
-                congrats_date = next_bday + timedelta(days=2)
-            elif next_bday.weekday() == 6:
-                congrats_date = next_bday + timedelta(days=1)
-            else:
-                congrats_date = next_bday
-            if today <= congrats_date <= end_date:
-                result.append({
-                    "name": record.name.value,
-                    "birthday": congrats_date.strftime("%d.%m.%Y"),
-                })
+
+        for user in self.data.values():
+            name = user.name.value
+            birthday = datetime.strptime(user.birthday.value, "%Y-%m-%d").date()
+
+            birthday_this_year = birthday.replace(year=today.year)
+
+            if birthday_this_year < today:
+                birthday_this_year = birthday_this_year.replace(year=today.year + 1)
+
+            if today <= birthday_this_year <= end_date:
+                congratulations_date = birthday_this_year
+
+            if congratulations_date.weekday() == 5:
+                congratulations_date += timedelta(days=2)
+            elif congratulations_date.weekday() == 6:
+                congratulations_date += timedelta(days=1)
+
+            result.append({
+                "name": name,
+                "birthday": congratulations_date.strftime("%Y-%m-%d")
+            })
+
         return result
 
     def __str__(self):
