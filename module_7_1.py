@@ -67,7 +67,7 @@ class Record:
         self.birthday = Birthday(birthday)
 
     def __str__(self):
-        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}"
+        return f"Contact name: {self.name.value}, phones: {'; '.join(p.value for p in self.phones)}, birthday: {self.birthday.value}" if self.birthday else ""
 
 
 class AddressBook(UserDict):
@@ -115,9 +115,11 @@ class AddressBook(UserDict):
 def input_error(func):
     def inner(*args, **kwargs):
         try:
-            return func(*args, **kwargs)
-        except (ValueError, KeyError, IndexError, AttributeError) as e:
-            return str(e)
+            return func(*args, **kwargs)  
+        except (ValueError,IndexError):
+            return "Invalid input."
+        except (KeyError, AttributeError):
+            return "Contact is not found"
     return inner
 
 def parse_input(user_input: str):
@@ -145,8 +147,6 @@ def add_contact(args, book: AddressBook):
 def change_phone(args, book: AddressBook):
     name, phone_old, phone_new, *_ = args
     record = book.find(name)
-    if record is None:
-        raise KeyError("Contact not found.")
     record.edit_phone(phone_old, phone_new)
     return "Phone number changed."
 
@@ -154,8 +154,6 @@ def change_phone(args, book: AddressBook):
 def show_phones(args, book: AddressBook):
     name, *_ = args
     record = book.find(name)
-    if record is None:
-        raise KeyError("Contact not found.")
     if not record.phones:
         return "No phones."
     return "; ".join(p.value for p in record.phones)
@@ -180,8 +178,6 @@ def add_birthday(args, book: AddressBook):
 def show_birthday(args, book: AddressBook):
     name, *_ = args
     record = book.find(name)
-    if record is None:
-        raise KeyError("Contact not found.")
     if not record.birthday:
         return "Birthday not set."
     return record.birthday.value
