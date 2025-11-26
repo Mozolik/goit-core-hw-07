@@ -88,8 +88,11 @@ class AddressBook(UserDict):
         result = []
 
         for user in self.data.values():
-            name = user.name.value
-            birthday = datetime.strptime(user.birthday.value, "%Y-%m-%d").date()
+            name = user.name.value 
+            if user.birthday == None:
+                continue    
+
+            birthday = datetime.strptime(user.birthday.value, "%d.%m.%Y").date()
 
             birthday_this_year = birthday.replace(year=today.year)
 
@@ -99,15 +102,15 @@ class AddressBook(UserDict):
             if today <= birthday_this_year <= end_date:
                 congratulations_date = birthday_this_year
 
-            if congratulations_date.weekday() == 5:
-                congratulations_date += timedelta(days=2)
-            elif congratulations_date.weekday() == 6:
-                congratulations_date += timedelta(days=1)
+                if congratulations_date.weekday() == 5:  
+                    congratulations_date += timedelta(days=2)
+                elif congratulations_date.weekday() == 6:  
+                    congratulations_date += timedelta(days=1)
 
-            result.append({
-                "name": name,
-                "birthday": congratulations_date.strftime("%Y-%m-%d")
-            })
+                result.append({
+                    "name": name,
+                    "birthday": congratulations_date.strftime("%d.%m.%Y")
+                })
 
         return result
 
